@@ -71,8 +71,14 @@ func DialSystem(ctx context.Context, dest net.Destination, sockopt *SocketConfig
 	outbound := session.OutboundFromContext(ctx)
 
 	var src net.Address
-	if outbound != nil {
-		src = outbound.Gateway
+	if outbound := session.OutboundFromContext(ctx); outbound != nil {
+		if outbound.Gateway == net.IPAddress([]byte{0, 0, 0, 0}){
+			if inbound := session.InboundFromContext(ctx); inbound != nil{
+				src = inbound.Source.Address
+			}
+		} else{
+			src = outbound.Gateway
+		}
 	}
 
 	if transportLayerOutgoingTag := session.GetTransportLayerProxyTagFromContext(ctx); transportLayerOutgoingTag != "" {
